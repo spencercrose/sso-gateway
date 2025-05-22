@@ -48,7 +48,7 @@ graph TD
         User_Browser
     end
 
-    subgraph Private Cloud (OpenShift)
+    subgraph Private Cloud OpenShift
         NGINX_Reverse_Proxy
         subgraph Node.js Application Cluster
             NodeJS_App_1[Application 1]
