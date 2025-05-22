@@ -1,4 +1,4 @@
-#Secure Web Application Architecture with BC Government Keycloak SSO
+# Secure Web Application Architecture with BC Government Keycloak SSO
 
 Scalable NGINX-based reverse proxy architecture for web applications, with SSO client and session management. Can be integrated with the BC Government's Common Keycloak service for Single Sign-On (SSO).
 
