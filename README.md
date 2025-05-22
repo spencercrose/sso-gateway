@@ -4,21 +4,12 @@ Scalable NGINX-based reverse proxy architecture for web applications, with SSO c
 
 ## Table of Contents
 
-1.  [Overview](https://www.google.com/search?q=%23overview)
-2.  [Key Components](https://www.google.com/search?q=%23key-components)
-      * [NGINX Reverse Proxy](https://www.google.com/search?q=%23nginx-reverse-proxy)
-      * [BC Government Common Keycloak Service (OIDC)](https://www.google.com/search?q=%23bc-government-common-keycloak-service-oidc)
-      * [Node.js Client Application](https://www.google.com/search?q=%23nodejs-client-application)
-      * [Redis Session Store](https://www.google.com/search?q=%23redis-session-store)
-3.  [Architecture Diagram](https://www.google.com/search?q=%23architecture-diagram)
-4.  [Authentication and Session Flow](https://www.google.com/search?q=%23authentication-and-session-flow)
-5.  [Benefits](https://www.google.com/search?q=%23benefits)
-6.  [Setup Considerations](https://www.google.com/search?q=%23setup-considerations)
-      * [BC Gov Keycloak Integration](https://www.google.com/search?q=%23bc-gov-keycloak-integration)
-      * [NGINX Configuration](https://www.google.com/search?q=%23nginx-configuration)
-      * [Node.js Application Configuration](https://www.google.com/search?q=%23nodejs-application-configuration)
-      * [Redis Deployment](https://www.google.com/search?q=%23redis-deployment)
-7.  [Security Best Practices](https://www.google.com/search?q=%23security-best-practices)
+1.  [Overview](#overiew)
+2.  [Components](#components)
+3.  [Architecture](#architecture)
+4.  [Authentication and Session Flow](#authentication-and-session-flow)
+5.  [Setup Considerations](#setup-considerations)
+7.  [Security Best Practices](#security-best-practices)
 
 ## 1\. Overview
 
@@ -50,7 +41,7 @@ graph TD
 
     subgraph Private Cloud OpenShift
         NGINX_Reverse_Proxy
-        subgraph Node.js Application Cluster
+        subgraph Client or Server Applications
             NodeJS_App_1[Application 1]
             NodeJS_App_2[Application 2]
             NodeJS_App_N[Application 3]
@@ -70,17 +61,17 @@ graph TD
     NodeJS_App_1 -- OIDC Request (Redirect) --> User_Browser
     User_Browser -- Authenticates --> BC_Gov_Keycloak_Service
 
-    BC_Gov_Keycloak_Service -- OIDC Auth Code (Redirect) --> User_Browser
-    User_Browser -- OIDC Auth Code --> NodeJS_App_1
+    BC_Gov_Keycloak_Service -- OIDC Auth Code (Redirect) --> NGINX_Reverse_Proxy
+    User_Browser -- OIDC Auth Code --> NGINX_Reverse_Proxy
 
-    NodeJS_App_1 -- OIDC Token Exchange --> BC_Gov_Keycloak_Service
-    BC_Gov_Keycloak_Service -- ID & Access Tokens --> NodeJS_App_1
+    NGINX_Reverse_Proxy -- OIDC Token Exchange --> BC_Gov_Keycloak_Service
+    BC_Gov_Keycloak_Service -- ID & Access Tokens --> NGINX_Reverse_Proxy
 
     NodeJS_App_1 -- Store Session --> Redis_Session_Store
     NodeJS_App_2 -- Retrieve Session --> Redis_Session_Store
     NodeJS_App_N -- Retrieve Session --> Redis_Session_Store
 
-    NodeJS_App_1 -- Set Session Cookie --> User_Browser
+    NodeJS_App_1 -- Set Session Cookie --> NGINX_Reverse_Proxy
     User_Browser -- Requests (with Session) --> NGINX_Reverse_Proxy
     NodeJS_App_2 -- Retrieve Session Data --> Redis_Session_Store
     NodeJS_App_2 -- Application Response --> NGINX_Reverse_Proxy
