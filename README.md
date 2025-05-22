@@ -11,11 +11,11 @@ Scalable NGINX-based reverse proxy architecture for web applications, with SSO c
 5.  [Setup Considerations](#setup-considerations)
 7.  [Security Best Practices](#security-best-practices)
 
-## 1\. Overview
+## Overview
 
 This architecture is designed to provide a secure, high-performance, and scalable foundation for web applications. By utilizing NGINX as a reverse proxy, we centralize request handling, enable SSL termination, and facilitate load balancing. The Node.js application focuses on business logic, offloading authentication to the BC Government's Common Keycloak service via OpenID Connect (OIDC). User sessions are managed efficiently and externalized to Redis, allowing for seamless scaling and resilience.
 
-## 2\. Components
+## Components
 
 ### NGINX Reverse Proxy
 Entry point for incoming requests. Provides SSL/TLS Termination to handle HTTPS encryption and decryption; Directs incoming traffic
@@ -31,7 +31,7 @@ OIDC Client that initiates authentication requests to Keycloak and processes the
 External, high-performance, in-memory data store for user sessions.
 
 
-## 3\. Architecture
+## Architecture
 
 ```mermaid
 graph TD
@@ -79,7 +79,7 @@ graph TD
 
 ```
 
-## 4\. Authentication and Session Flow
+## Authentication and Session Flow
 
 1.  **Initial Request:** Send HTTPS request to application's domain (e.g., `https://myapp.gov.bc.ca`).
 2.  **NGINX Proxy:** NGINX receives the request, terminates SSL, and forwards it to a Node.js application instance (via a load balancer, if present).
@@ -95,7 +95,7 @@ graph TD
 12. **Token Validation/Refresh:** The Node.js application validates the Access Token. If expired, it uses the Refresh Token to obtain new Access and ID Tokens from Keycloak without user re-authentication.
 13. **Resource Access:** If the session and tokens are valid, the Node.js application grants access to the requested resources.
 
-## 6\. Setup Considerations
+## Setup Considerations
 
 ### BC Gov Keycloak Integration
 
@@ -140,7 +140,7 @@ server {
 }
 ```
 
-### Node.js Application Configuration
+### SSO Client Configuration
 
   * **OIDC Client Library:** Use a robust OIDC client library (uses `openid-client`) to handle the OIDC flow.
   * **Environment Variables:** Store sensitive configuration like Keycloak `client_id`, `client_secret`, and Redis connection details as environment variables.
@@ -150,7 +150,7 @@ server {
 **Example Node.js `express-session` with `connect-redis` (simplified):**
 
 
-## 7\. Security Best Practices
+## Security Best Practices
 
   * **Always use HTTPS:** Enforce HTTPS for all traffic using NGINX.
   * **Strong Session Secrets:** Use long, random, and frequently rotated secrets for session management.
