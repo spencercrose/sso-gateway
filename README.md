@@ -108,7 +108,7 @@ graph TD
     NodeJS_App_1 -- Set Session Cookie --> User_Browser
     User_Browser -- Subsequent Requests (with Session Cookie) --> NGINX_Reverse_Proxy
     NGINX_Reverse_Proxy -- Proxy Pass --> Load_Balancer
-    Load_Balancer -- Distribute Traffic --> NodeJS_App_X[Node.js App Instance (any)]
+    Load_Balancer -- Distribute Traffic --> NodeJS_App_X[Node.js App Instance]
     NodeJS_App_X -- Retrieve Session Data --> Redis_Session_Store
     NodeJS_App_X -- Application Response --> NGINX_Reverse_Proxy
     NGINX_Reverse_Proxy -- HTTPS Response --> User_Browser
