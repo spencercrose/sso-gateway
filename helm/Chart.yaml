@@ -24,3 +24,4 @@ description: A Helm chart for deploying an SSO client app with NGINX reverse pro
 type: application
 version: 0.1.0
 appVersion: "2.0.1"
+icon: https://raw.githubusercontent.com/spencercrose/sso-gateway/refs/heads/main/helm/sso-gateway.svg
