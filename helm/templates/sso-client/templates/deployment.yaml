@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sso-gateway.fullname" . }}
+  labels:
+    {{- include "sso-gateway.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.sso-gateway.autoscaling.enabled }}
+  replicas: {{ .Values.sso-gateway.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "sso-gateway.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.sso-gateway.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "sso-gateway.labels" . | nindent 8 }}
+	{{- with .Values.sso-gateway.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.sso-gateway.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "sso-gateway.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.sso-gateway.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.sso-gateway.securityContext | nindent 12 }}
+          image: {{ .Values.sso-gateway.image.repository }}:{{ .Values.sso-gateway.image.tag }}
+          {{- if .Values.sso-gateway.imagePullSecrets }}
+          imagePullPolicy: {{ .Values.sso-gateway.image.pullPolicy }}
+          {{- end }}
+          {{- if .Values.sso-gateway.nameOverride }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.sso-gateway.service.containerPort }}
+              protocol: TCP
+          {{- if .Values.sso-gateway.probes.liveness.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.sso-gateway.probes.liveness.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.sso-gateway.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.sso-gateway.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.sso-gateway.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.sso-gateway.probes.liveness.failureThreshold }}
+          {{- end }}
+          {{- if .Values.sso-gateway.probes.readiness.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.sso-gateway.probes.readiness.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.sso-gateway.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.sso-gateway.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.sso-gateway.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.sso-gateway.probes.readiness.failureThreshold }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.sso-gateway.resources | nindent 12 }}
+          env:
+            {{- toYaml .Values.sso-gateway.env | nindent 12 }}
+            {{- if .Values.sso-gateway.envFromSecrets }}
+            {{- range .Values.sso-gateway.envFromSecrets }}
+            - name: {{ .name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .secretName }}
+                  key: {{ .key }}
+            {{- end }}
+            {{- end }}
+          envFrom:
+            {{- if .Values.sso-gateway.secretEnvSources }}
+            {{- range .Values.sso-gateway.secretEnvSources }}
+            - secretRef:
+                name: {{ .name }}
+            {{- end }}
+            {{- end }}
+          {{- with .Values.sso-gateway.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.sso-gateway.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sso-gateway.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sso-gateway.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sso-gateway.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

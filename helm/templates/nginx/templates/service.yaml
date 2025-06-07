@@ -1,0 +1,24 @@
+# my-sso-app-chart/templates/nginx-proxy/service.yaml
+{{- if and .Values.nginx.enabled (not .Values.nginx.ingress.enabled) -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sso-gatway.fullname" . }}-nginx-proxy
+  labels:
+    {{- include "sso-gatway.labels" . | nindent 4 }}
+    app.kubernetes.io/component: nginx-proxy
+  {{- with .Values.nginx.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.nginx.service.type }}
+  ports:
+    - port: {{ .Values.nginx.service.port }}
+      targetPort: {{ .Values.nginx.service.targetPort }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "sso-gatway.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: nginx-proxy
+{{- end }}

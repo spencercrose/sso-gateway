@@ -1,133 +1,263 @@
-# Default values for nodejs.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
 
-replicaCount: 1
+# -- Node.js SSO Gateway default configuration
+sso-client:
 
-# Image details (for the base Node.js image)
-image:
-  name: "node"
-  tag: "20-alpine"
-  pullPolicy: IfNotPresent
+  enabled: true
 
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
+  replicaCount: 1
 
-# GitHub Repository Details for S2I build
-git:
-  url: "https://github.com/bcgov/km-sso-client.git" # IMPORTANT: Replace with your GitHub repository URL
-  ref: "main" # Or "master", or a specific branch/tag
+  image:
+    repository: "ghcr.io/spencercrose/sso-gateway"
+    tag: "latest"
+    pullPolicy: IfNotPresent
 
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: true
-  # Automatically mount a ServiceAccount's API credentials?
-  automount: true
-  # Annotations to add to the service account
-  annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  name: ""
+  # -- Image Pull Secrets for Private GHCR
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
 
-podAnnotations: {}
-podLabels: {}
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Automatically mount a ServiceAccount's API credentials?
+    automount: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: ""
 
-podSecurityContext: {}
-  # fsGroup: 2000
+  podAnnotations: {}
+  podLabels: {}
 
-securityContext:
-  runAsNonRoot: true
-  # runAsUser: 1001 # DO NOT SET THIS if you want OpenShift to assign a random non-root UID
-  allowPrivilegeEscalation: false # Recommended for security
-  capabilities:
-    drop:
-      - ALL
+  podSecurityContext: {}
+    # fsGroup: 2000
 
-# Environment variables for your Node.js application
-env:
-- name: SSO_REDIS_CONNECT_PASSWORD 
-  valueFrom:
-    secretKeyRef:
-      name: redis-store
-      key: redis-password
+  securityContext:
+    runAsNonRoot: true
+    # runAsUser: 1001 # DO NOT SET THIS if you want OpenShift to assign a random non-root UID
+    allowPrivilegeEscalation: false # Recommended for security
+    capabilities:
+      drop:
+        - ALL
 
-secretEnvSources:
-  - name: dev-sso-client-conf
+  # Environment variables for your Node.js application
+  env:
+  - name: SSO_REDIS_CONNECT_PASSWORD 
+    valueFrom:
+      secretKeyRef:
+        name: redis-store
+        key: redis-password
 
-service:
-  type: ClusterIP
-  port: 80
+  secretEnvSources:
+    - name: sso-gateway-conf
 
-ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: chart-example.local
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+  service:
+    type: ClusterIP
+    containerPort: 3000
 
-resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
 
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
+  resources:
+    limits:
+      cpu: 50m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
 
-# Additional volumes on the output Deployment definition.
-volumes: []
-# - name: foo
-#   secret:
-#     secretName: mysecret
-#     optional: false
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
 
-# Additional volumeMounts on the output Deployment definition.
-volumeMounts: []
-# - name: foo
-#   mountPath: "/etc/foo"
-#   readOnly: true
+  # Additional volumes on the output Deployment definition.
+  volumes: []
+  # - name: foo
+  #   secret:
+  #     secretName: mysecret
+  #     optional: false
 
-nodeSelector: {}
+  # Additional volumeMounts on the output Deployment definition.
+  volumeMounts: []
+  # - name: foo
+  #   mountPath: "/etc/foo"
+  #   readOnly: true
 
-tolerations: []
+  nodeSelector: {}
 
-affinity: {}
+  tolerations: []
 
-# Liveness and Readiness Probes (adjust based on your app's health checks)
-probes:
-  liveness:
-    enabled: true
-    path: /healthz # Replace with your app's health check endpoint
-    port: 8080
-    initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 5
-    failureThreshold: 3
-  readiness:
-    enabled: true
-    path: /readyz # Replace with your app's readiness check endpoint
-    port: 8080
-    initialDelaySeconds: 10
-    periodSeconds: 10
-    timeoutSeconds: 5
-    failureThreshold: 3
+  affinity: {}
+
+  # Liveness and Readiness Probes (adjust based on your app's health checks)
+  probes:
+    liveness:
+      enabled: true
+      path: /health
+      port: 3000
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readiness:
+      enabled: true
+      path: /health
+      port: 3000
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+
+# -- Redis Datastore configuration
+redis:
+
+  enabled: true
+
+  replicaCount: 1
+
+  image:
+    repository: redis
+    pullPolicy: IfNotPresent
+    tag: "8.0.2"
+
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+
+
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Automatically mount a ServiceAccount's API credentials?
+    automount: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: ""
+
+  podAnnotations: {}
+  podLabels: {}
+
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  service:
+    type: ClusterIP
+    port: 6379
+
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+
+  resources: {}
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+  persistence:
+    enabled: false # Set to true for production, requires a StorageClass
+    size: 256Mi
+    storageClassName: "" # Defaults to cluster default, specify if needed
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+  # Additional volumes on the output Deployment definition.
+  volumes:
+    - name: redis-data
+      persistentVolumeClaim:
+        claimName: redis-store
+
+  # Additional volumeMounts on the output Deployment definition.
+  volumeMounts:
+    - name: redis-data
+      mountPath: /data
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+# -- NGINX Reverse Proxy configuration
+nginx:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: nginx
+    tag: stable-alpine
+    pullPolicy: IfNotPresent
+  containerPort: 80 # NGINX listens on 80 inside container
+  service:
+    type: LoadBalancer # Use LoadBalancer for cloud, NodePort for minikube/local
+    port: 80 # External port for NGINX
+    targetPort: 80 # Internal port of NGINX container
+  ingress:
+    enabled: false # Set to true to use Kubernetes Ingress resource (requires Ingress Controller)
+    className: "nginx" # Or your specific Ingress Controller class name
+    host: "sso.example.com" # REPLACE ME!
+    path: /
+    pathType: Prefix
+    annotations: {} # Add any specific Ingress annotations here (e.g., cert-manager, rewrite rules)
+    tls:
+      enabled: false
+      secretName: "" # e.g., sso-example-com-tls
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
