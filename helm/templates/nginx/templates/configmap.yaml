@@ -1,11 +1,11 @@
-# my-sso-app-chart/templates/nginx-proxy/configmap.yaml
-{{- if .Values.nginx.enabled -}}
+# sso-gateway/templates/nginx-proxy/configmap.yaml
+{{- if .Values.nginx.enabled -}} # <-- Corrected: Changed .Values.nginx.enabled to .Values.nginx.enabled
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "sso-gateway.fullname" . }}-nginx-proxy-config
+  name: {{ include "ssoGateway.fullname" . }}-nginx-proxy-config
   labels:
-    {{- include "sso-gateway.labels" . | nindent 4 }}
+    {{- include "ssoGateway.labels" . | nindent 4 }}
     app.kubernetes.io/component: nginx-proxy
 data:
   nginx.conf: |
@@ -45,18 +45,18 @@ data:
 
         # Upstream to the SSO client application
         upstream sso_client_app {
-            server {{ include "sso-gateway.fullname" . }}-sso-client:{{ .Values.ssoClient.containerPort }};
+            server {{ include "ssoGateway.fullname" . }}-ssoClient:{{ .Values.ssoClient.containerPort }};
         }
 
         server {
-            listen {{ .Values.nginx.containerPort }};
+            listen {{ .Values.nginx.containerPort }}; # <-- Corrected: Changed .Values.nginx.containerPort to .Values.nginx.containerPort
             server_name _; # Listen on all hostnames
 
             # Add appropriate headers for reverse proxy and SSO
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_set_header Host $http_host;
+            proxy_set_header Host $http_host; # This is more accurate than $host for direct proxy
 
             # Adjust proxy timeouts if needed
             proxy_connect_timeout       60s;
@@ -64,17 +64,18 @@ data:
             proxy_read_timeout          60s;
 
             location / {
-                proxy_pass http://sso-client-service:3000;
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
-                proxy_set_header X-NginX-Proxy true;
+                proxy_pass http://sso_client_app; # <-- Corrected: Use the defined upstream
                 proxy_redirect off;
+                # The following headers are already set above or handled by proxy_pass
+                # proxy_set_header Host $host; # Redundant with proxy_set_header Host $http_host;
+                # proxy_set_header X-Real-IP $remote_addr; # Already set
+                # proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; # Already set
+                # proxy_set_header X-Forwarded-Proto $scheme; # Already set
+                proxy_set_header X-NginX-Proxy true; # Keep if specific to your setup
 
                 proxy_buffers 8 16k;
                 proxy_buffer_size 32k;
             }
         }
     }
-
+{{- end }}

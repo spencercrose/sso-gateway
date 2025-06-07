@@ -1,11 +1,11 @@
-# my-sso-app-chart/templates/nginx-proxy/ingress.yaml
+# sso-gateway/templates/nginx-proxy/ingress.yaml
 {{- if and .Values.nginx.enabled .Values.nginx.ingress.enabled -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "sso-gateway.fullname" . }}-nginx-proxy
+  name: {{ include "ssoGateway.fullname" . }}-nginx-proxy
   labels:
-    {{- include "sso-gateway.labels" . | nindent 4 }}
+    {{- include "ssoGateway.labels" . | nindent 4 }}
     app.kubernetes.io/component: nginx-proxy
   {{- with .Values.nginx.ingress.annotations }}
   annotations:
@@ -23,7 +23,7 @@ spec:
             pathType: {{ .Values.nginx.ingress.pathType }}
             backend:
               service:
-                name: {{ include "sso-gateway.fullname" . }}-nginx-proxy
+                name: {{ include "ssoGateway.fullname" . }}-nginx-proxy
                 port:
                   number: {{ .Values.nginx.service.port }} # External port of NGINX Service
   {{- if .Values.nginx.ingress.tls.enabled }}

@@ -1,74 +1,71 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "sso-gateway.fullname" . }}
+  name: {{ include "ssoGateway.fullname" . }}
   labels:
-    {{- include "sso-gateway.labels" . | nindent 4 }}
+    {{- include "ssoGateway.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.sso-gateway.autoscaling.enabled }}
-  replicas: {{ .Values.sso-gateway.replicaCount }}
+  {{- if not .Values.ssoClient.autoscaling.enabled }}
+  replicas: {{ .Values.ssoClient.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "sso-gateway.selectorLabels" . | nindent 6 }}
+      {{- include "ssoGateway.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.sso-gateway.podAnnotations }}
+      {{- with .Values.ssoClient.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "sso-gateway.labels" . | nindent 8 }}
-	{{- with .Values.sso-gateway.podLabels }}
+        {{- include "ssoGateway.labels" . | nindent 8 }}
+        {{- with .Values.ssoClient.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      {{- with .Values.sso-gateway.imagePullSecrets }}
+      {{- with .Values.ssoClient.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "sso-gateway.serviceAccountName" . }}
+      serviceAccountName: {{ include "ssoGateway.serviceAccountName" . }}
       securityContext:
-        {{- toYaml .Values.sso-gateway.podSecurityContext | nindent 8 }}
+        {{- toYaml .Values.ssoClient.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
-            {{- toYaml .Values.sso-gateway.securityContext | nindent 12 }}
-          image: {{ .Values.sso-gateway.image.repository }}:{{ .Values.sso-gateway.image.tag }}
-          {{- if .Values.sso-gateway.imagePullSecrets }}
-          imagePullPolicy: {{ .Values.sso-gateway.image.pullPolicy }}
-          {{- end }}
-          {{- if .Values.sso-gateway.nameOverride }}
-          ports:
+            {{- toYaml .Values.ssoClient.securityContext | nindent 12 }}
+          image: {{ .Values.ssoClient.image.repository }}:{{ .Values.ssoClient.image.tag }}
+          imagePullPolicy: {{ .Values.ssoClient.image.pullPolicy }} # <-- Corrected: Removed conditional 'if .Values.ssoClient.imagePullSecrets'
+          ports: # <-- This block no longer conditional on 'nameOverride'
             - name: http
-              containerPort: {{ .Values.sso-gateway.service.containerPort }}
+              containerPort: {{ .Values.ssoClient.service.containerPort }}
               protocol: TCP
-          {{- if .Values.sso-gateway.probes.liveness.enabled }}
+          {{- if .Values.ssoClient.probes.liveness.enabled }}
           livenessProbe:
             httpGet:
-              path: {{ .Values.sso-gateway.probes.liveness.path }}
+              path: {{ .Values.ssoClient.probes.liveness.path }}
               port: http
-            initialDelaySeconds: {{ .Values.sso-gateway.probes.liveness.initialDelaySeconds }}
-            periodSeconds: {{ .Values.sso-gateway.probes.liveness.periodSeconds }}
-            timeoutSeconds: {{ .Values.sso-gateway.probes.liveness.timeoutSeconds }}
-            failureThreshold: {{ .Values.sso-gateway.probes.liveness.failureThreshold }}
+            initialDelaySeconds: {{ .Values.ssoClient.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.ssoClient.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.ssoClient.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.ssoClient.probes.liveness.failureThreshold }}
           {{- end }}
-          {{- if .Values.sso-gateway.probes.readiness.enabled }}
+          {{- if .Values.ssoClient.probes.readiness.enabled }}
           readinessProbe:
             httpGet:
-              path: {{ .Values.sso-gateway.probes.readiness.path }}
+              path: {{ .Values.ssoClient.probes.readiness.path }}
               port: http
-            initialDelaySeconds: {{ .Values.sso-gateway.probes.readiness.initialDelaySeconds }}
-            periodSeconds: {{ .Values.sso-gateway.probes.readiness.periodSeconds }}
-            timeoutSeconds: {{ .Values.sso-gateway.probes.readiness.timeoutSeconds }}
-            failureThreshold: {{ .Values.sso-gateway.probes.readiness.failureThreshold }}
+            initialDelaySeconds: {{ .Values.ssoClient.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.ssoClient.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.ssoClient.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.ssoClient.probes.readiness.failureThreshold }}
           {{- end }}
           resources:
-            {{- toYaml .Values.sso-gateway.resources | nindent 12 }}
+            {{- toYaml .Values.ssoClient.resources | nindent 12 }}
           env:
-            {{- toYaml .Values.sso-gateway.env | nindent 12 }}
-            {{- if .Values.sso-gateway.envFromSecrets }}
-            {{- range .Values.sso-gateway.envFromSecrets }}
+            {{- toYaml .Values.ssoClient.env | nindent 12 }}
+            {{- if .Values.ssoClient.envFromSecrets }}
+            {{- range .Values.ssoClient.envFromSecrets }}
             - name: {{ .name }}
               valueFrom:
                 secretKeyRef:
@@ -77,29 +74,29 @@ spec:
             {{- end }}
             {{- end }}
           envFrom:
-            {{- if .Values.sso-gateway.secretEnvSources }}
-            {{- range .Values.sso-gateway.secretEnvSources }}
+            {{- if .Values.ssoClient.secretEnvSources }}
+            {{- range .Values.ssoClient.secretEnvSources }}
             - secretRef:
                 name: {{ .name }}
             {{- end }}
             {{- end }}
-          {{- with .Values.sso-gateway.volumeMounts }}
+          {{- with .Values.ssoClient.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-      {{- with .Values.sso-gateway.volumes }}
+      {{- with .Values.ssoClient.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.sso-gateway.nodeSelector }}
+      {{- with .Values.ssoClient.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.sso-gateway.affinity }}
+      {{- with .Values.ssoClient.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.sso-gateway.tolerations }}
+      {{- with .Values.ssoClient.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

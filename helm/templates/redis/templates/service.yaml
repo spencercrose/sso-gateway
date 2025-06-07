@@ -1,11 +1,11 @@
-# my-sso-app-chart/templates/redis/service.yaml
+# sso-gateway/templates/redis/service.yaml
 {{- if .Values.redis.enabled -}}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "sso-gatway.fullname" . }}-redis
+  name: {{ include "ssoGateway.fullname" . }}-redis
   labels:
-    {{- include "sso-gatway.labels" . | nindent 4 }}
+    {{- include "ssoGateway.labels" . | nindent 4 }}
     app.kubernetes.io/component: redis
 spec:
   type: ClusterIP # Internal service
@@ -15,6 +15,6 @@ spec:
       protocol: TCP
       name: redis
   selector:
-    {{- include "sso-gatway.selectorLabels" . | nindent 4 }}
+    {{- include "ssoGateway.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: redis
 {{- end }}
