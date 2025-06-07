@@ -1,0 +1,10 @@
+services:
+  sso-client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sso-client-application
+    env_file:
+      - .env.local
+    ports:
+      - "3000:3000"
