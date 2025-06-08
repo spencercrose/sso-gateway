@@ -64,22 +64,8 @@ spec:
             {{- toYaml .Values.ssoClient.resources | nindent 12 }}
           env:
             {{- toYaml .Values.ssoClient.env | nindent 12 }}
-            {{- if .Values.ssoClient.envFromSecrets }}
-            {{- range .Values.ssoClient.envFromSecrets }}
-            - name: {{ .name }}
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .secretName }}
-                  key: {{ .key }}
-            {{- end }}
-            {{- end }}
           envFrom:
-            {{- if .Values.ssoClient.secretEnvSources }}
-            {{- range .Values.ssoClient.secretEnvSources }}
-            - secretRef:
-                name: {{ .name }}
-            {{- end }}
-            {{- end }}
+            {{ include "ssoGateway.fullname" . }}-global-conf
           {{- with .Values.ssoClient.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}

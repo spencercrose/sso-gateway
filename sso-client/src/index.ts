@@ -57,7 +57,7 @@ declare global {
 }
 
 // Application port
-const port = Number(config.SSO_CLIENT_PORT); // Config.SSO_CLIENT_PORT is already typed as number
+const port = Number(config.SSO_CLIENT_PORT);
 
 let keycloakIssuer: Issuer;
 let keycloakClient: Client;

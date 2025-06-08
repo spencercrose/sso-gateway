@@ -3,15 +3,29 @@ global:
   nameOverride: ""
   fullnameOverride: ""
   serviceAccount:
+    name: "<licenseplate>-vault"
     # Specifies whether a service account should be created
     create: false
     # Automatically mount a ServiceAccount's API credentials?
     automount: true
     # Annotations to add to the service account
-    annotations: {}
-    # The name of the service account to use.
-    # If not set and create is true, a name is generated using the fullname template
-    name: "sso-gateway-service-account"
+    # See details: https://stackoverflow.developer.gov.bc.ca/questions/1060/1061
+    annotations: 
+      vault.hashicorp.com/namespace: platform-services
+      vault.hashicorp.com/role: abcdef-nonprod
+      vault.hashicorp.com/agent-pre-populate-only: 'true'
+      vault.hashicorp.com/agent-inject: 'true'
+      vault.hashicorp.com/agent-inject-secret-secrets.env: abcdef-nonprod/dev/service-name
+      vault.hashicorp.com/agent-inject-template-secrets.env: |
+        {{- with secret "abcdef-nonprod/dev/service-name" }}
+        {{- range $k, $v := .Data.data }}
+        {{ $k }}={{ $v }}{{ end -}}
+        {{- end  }}
+      vault.hashicorp.com/auth-path: auth/k8s-silver
+    # -- Server domains for the SSO Gateway
+    domains:
+      - "app1.example.com" 
+      - "app2.example.com"
 
 # -- Node.js SSO Gateway default configuration
 ssoClient:
@@ -41,39 +55,11 @@ ssoClient:
       drop:
         - ALL
 
-  secrets: # These will be stored in a Kubernetes Secret
-    SSO_AUTH_SERVER_URL: "https://keycloak.server/auth/realms/keycloak-realm"
-    SSO_REALM: "keycloak-realm"
-    SSO_CLIENT_ID: "keycloak-client-id"
-    SSO_REDIRECT_URL: "https://example.com/auth/callback"
-    SSO_LOGOUT_REDIRECT_URI: "https://example.com/logout-redirect"
-    CLIENT_HOST: "https://example.com"
-
-    # -- SSO_CLIENT_SECRET Configuration
-    # If .value is empty AND generate is true, a random string will be generated.
-    # Otherwise, the value provided here will be used.
-    ssoClientSecret:
-      value: ""
-      generate: true
-      length: 32
-
-    # -- SSO_SESSION_SECRET Configuration
-    # Same logic as ssoClientSecret
-    ssoSessionSecret:
-      value: "" 
-      generate: true
-      length: 32
-
-  # Redis connection configuration
-  env:
-    - name: SSO_REDIS_CONNECT_PASSWORD 
-      valueFrom:
-        secretKeyRef:
-          name: sso-gateway-global-conf
-          key: redisPassword
-        
-  secretEnvSources:
-    - name: sso-gateway-global-config
+  env: {}
+    # - name: SSO_REDIS_SESSION_STORE_URL
+    #   value: "redis://localhost:6379"
+    # - name: SSO_REDIS_CONNECT_PASSWORD
+    #   value: ""
 
   service:
     type: ClusterIP
@@ -209,7 +195,7 @@ redis:
     - name: REDIS_PASSWORD 
       valueFrom:
         secretKeyRef:
-          name: sso-gateway-global-config
+          name: sso-gateway-global-conf
           key: redisPassword
 
   resources:

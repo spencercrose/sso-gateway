@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "ssoGateway.fullname" . }}
+  name: {{ include "ssoGateway.fullname" . }}-proxy
   labels:
     {{- include "ssoGateway.labels" . | nindent 4 }}
 spec:

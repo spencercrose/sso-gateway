@@ -1,0 +1,32 @@
+[
+  {
+    "hostname": "app1.example.com",
+    "keycloak": {
+      "confidential-port": 0,
+      "auth-server-url": "https://keycloak.example.com/auth",
+      "realm": "realm1",
+      "ssl-required": "external",
+      "resource": "app1-client"
+    }
+  },
+  {
+    "hostname": "app2.example.com",
+    "keycloak": {
+      "confidential-port": 0,
+      "auth-server-url": "https://keycloak.example.com/auth",
+      "realm": "realm2",
+      "ssl-required": "external",
+      "resource": "app2-client"
+    }
+  },
+  {
+    "hostname": "localhost",
+    "keycloak": {
+      "confidential-port": 0,
+      "auth-server-url": "http://localhost:8080/auth",
+      "realm": "realm-dev",
+      "ssl-required": "external",
+      "resource": "dev-client"
+    }
+  }
+]

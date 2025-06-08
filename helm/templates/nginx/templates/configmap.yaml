@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "ssoGateway.fullname" . }}-nginx-proxy-config
+  name: {{ include "ssoGateway.fullname" . }}-nginx-config
   labels:
     {{- include "ssoGateway.labels" . | nindent 4 }}
     app.kubernetes.io/component: nginx-proxy
@@ -43,39 +43,64 @@ data:
             text/xml
             text/x-component;
 
-        # Upstream to the SSO client application
+        # Upstream SSO client application
         upstream sso_client_app {
-            server {{ include "ssoGateway.fullname" . }}-ssoClient:{{ .Values.ssoClient.containerPort }};
+            server {{ include "ssoGateway.fullname" . }}-client:{{ .Values.ssoClient.containerPort }};
         }
 
-        server {
-            listen {{ .Values.nginx.containerPort }}; # <-- Corrected: Changed .Values.nginx.containerPort to .Values.nginx.containerPort
-            server_name _; # Listen on all hostnames
+        # Dynamically generate server blocks for each configured server domain
+        {{- $domains := list }}
+        {{- if .Values.global.domains }}
+          {{- $domains = (fromYaml .Values.keycloak.config) }}
+        {{- end }}
 
-            # Add appropriate headers for reverse proxy and SSO
+        {{- range $domain := $domains }}
+        server {
+            listen {{ $.Values.nginx.containerPort }};
+            server_name {{ $domain }};
+            error_page 401 403 = @login_required;
+
+            # headers for reverse proxy and SSO
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_set_header Host $http_host; # This is more accurate than $host for direct proxy
+            proxy_set_header X-Original-URI $request_uri;
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Real-IP $remote_addr;
 
-            # Adjust proxy timeouts if needed
-            proxy_connect_timeout       60s;
-            proxy_send_timeout          60s;
-            proxy_read_timeout          60s;
+            proxy_connect_timeout       75s;
+            proxy_send_timeout          75s;
+            proxy_read_timeout          300s;
 
             location / {
-                proxy_pass http://sso_client_app; # <-- Corrected: Use the defined upstream
-                proxy_redirect off;
-                # The following headers are already set above or handled by proxy_pass
-                # proxy_set_header Host $host; # Redundant with proxy_set_header Host $http_host;
-                # proxy_set_header X-Real-IP $remote_addr; # Already set
-                # proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; # Already set
-                # proxy_set_header X-Forwarded-Proto $scheme; # Already set
-                proxy_set_header X-NginX-Proxy true; # Keep if specific to your setup
-
-                proxy_buffers 8 16k;
-                proxy_buffer_size 32k;
+                auth_request /auth/;
+                auth_request_set $auth_status $upstream_status;
+                proxy_pass http://sso_client_app;
             }
+
+          location /auth/ {
+            internal;
+            proxy_pass_request_body off;
+            proxy_set_header Content-Length "";
+            proxy_set_header Authorization $http_authorization;
+            proxy_pass_header Authorization;
+            proxy_pass http://sso_client_app;
+          }
+
+          location /sso-login {
+            proxy_set_header Host $host;
+            proxy_pass http://sso_client_app/authn;
+          }
+
+          location /sso {
+            proxy_set_header Host $host;
+            proxy_pass http://sso_client_app/authn/callback;
+          }
+
+          location @login_required {
+            return 302 {{ $domain }}/sso-login?relay=$request_uri;
+          }
         }
+        {{- end }}
     }
 {{- end }}

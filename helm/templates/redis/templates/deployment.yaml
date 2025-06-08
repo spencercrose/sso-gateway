@@ -43,7 +43,7 @@ spec:
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "ssoGateway.fullname" . }}-redis-secret
+                  name: {{ include "ssoGateway.fullname" . }}-global-conf
                   key: redis-password
           {{- end }}
           {{- if .Values.redis.persistence.enabled }}
