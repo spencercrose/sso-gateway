@@ -55,7 +55,7 @@ ssoClient:
       drop:
         - ALL
 
-  env: {}
+  env: []
 
   service:
     type: ClusterIP

@@ -39,11 +39,11 @@ spec:
           {{- if .Values.password }}
           command: ["redis-server", "--requirepass", "$(REDIS_PASSWORD)"]
           env:
-              - name: REDIS_PASSWORD 
-                valueFrom:
-                  secretKeyRef:
-                    name: sso-gateway-global-conf
-                    key: redisPassword
+            - name: REDIS_PASSWORD 
+              valueFrom:
+                secretKeyRef:
+                  name: sso-gateway-global-conf
+                  key: redisPassword
           {{- end }}
           {{- if .Values.persistence.enabled }}
           volumeMounts:

@@ -35,7 +35,7 @@ import { Issuer, Strategy, TokenSet, Client } from 'openid-client';
 import * as redis from 'redis'; // Correct import for Redis v4+ client
 import {RedisStore} from "connect-redis"; 
 import cookieParser from "cookie-parser";
-import config from './config';
+import config from './config.js';
 
 // Extend the session type for TypeScript to recognize custom properties
 declare module 'express-session' {

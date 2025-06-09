@@ -91,7 +91,7 @@ spec:
             {{- toYaml .Values.ssoClient.env | trimSuffix "\n" | nindent 12 }}
             {{- end }}
             - name: SSO_CLIENT_PORT
-              value: {{  .Values.ssoClient.service.port }}
+              value: {{  .Values.ssoClient.service.port | quote }}
             - name: NGINX_PROXY_URL
               value: http://{{ include "ssoGateway.fullname" . }}-proxy:{{ .Values.nginx.service.ports.http }}
             - name: REDIS_STORE_URL
@@ -99,7 +99,7 @@ spec:
             - name: REDIRECT_URL
               value: http://{{ include "ssoGateway.fullname" . }}-client:{{ .Values.ssoClient.service.port }}/authn/callback
             - name: VAULT_CONFIG_PATH
-              value: {{  .Values.global.vault.containerPath }}
+              value: {{  .Values.global.vault.containerPath | quote }}
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
