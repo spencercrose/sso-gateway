@@ -35,7 +35,7 @@ import { Issuer, Strategy, TokenSet, Client } from 'openid-client';
 import * as redis from 'redis'; // Correct import for Redis v4+ client
 import {RedisStore} from "connect-redis"; 
 import cookieParser from "cookie-parser";
-import config from './config.js';
+import config from './config';
 
 // Extend the session type for TypeScript to recognize custom properties
 declare module 'express-session' {
@@ -57,6 +57,9 @@ declare global {
 }
 
 // Application port
+if (!config) {
+  throw new Error("Config is undefined. Please ensure the configuration is loaded properly.");
+}
 const port = Number(config.SSO_CLIENT_PORT);
 
 let keycloakIssuer: Issuer;
@@ -95,14 +98,15 @@ let keycloakClient: Client;
     // FIX: TS2322: Type 'string | undefined' is not assignable to type 'string'.
     // Ensure all elements in allowedOrigins are strings.
     const allowedOrigins: string[] = [
-      config.CLIENT_HOST, // Use CLIENT_HOST from config
+      config.HOSTNAME,
+      config.NGINX_PROXY_URL,
+      config.SSO_CLIENT_HOST,
       config.SSO_AUTH_SERVER_URL,
-      // Add other specific origins if needed, e.g.
-      // 'https://your-frontend-app.com',
+      config.SSO_REDIS_SESSION_STORE_URL
     ];
 
     const corsConfig: cors.CorsOptions = {
-      origin: allowedOrigins, // This is now `string[]`
+      origin: allowedOrigins,
       methods: ["GET", "POST"],
       credentials: true,
       optionsSuccessStatus: 200,
@@ -180,15 +184,15 @@ let keycloakClient: Client;
         const idToken = tokenset.id_token;
         if (!idToken) {
           console.warn("No ID Token found for logout redirection. Redirecting to default.");
-          return res.redirect(`${config.SM_LOGOUT_URL}?retnow=1&returl=${encodeURIComponent(config.SSO_LOGOUT_REDIRECT_URI)}`);
+          return res.redirect(`${config!.SM_LOGOUT_URL}?retnow=1&returl=${encodeURIComponent(config!.SSO_LOGOUT_REDIRECT_URI)}`);
         }
 
-        const retUrl = `${config.SSO_AUTH_SERVER_URL}/auth/realms/${config.SSO_REALM
+        const retUrl = `${config!.SSO_AUTH_SERVER_URL}/auth/realms/${config!.SSO_REALM
           }/protocol/openid-connect/logout?post_logout_redirect_uri=${encodeURIComponent(
-            config.SSO_LOGOUT_REDIRECT_URI, // Now correctly defined in config
+            config!.SSO_LOGOUT_REDIRECT_URI, // Now correctly defined in config
           )}&id_token_hint=${idToken}`;
 
-        res.redirect(`${config.SM_LOGOUT_URL}?retnow=1&returl=${encodeURIComponent(retUrl)}`);
+        res.redirect(`${config!.SM_LOGOUT_URL}?retnow=1&returl=${encodeURIComponent(retUrl)}`);
       });
     });
 
@@ -207,7 +211,7 @@ let keycloakClient: Client;
 
     app.listen(port, () => {
       console.log(`Server listening on port ${port}`);
-      console.log(`Client host at ${config.CLIENT_HOST}`); // Now correctly defined in config
+      console.log(`Client host at ${config?.HOSTNAME}`); // Now correctly defined in config
     });
 
   } catch (error) {

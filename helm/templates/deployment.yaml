@@ -92,10 +92,12 @@ spec:
             {{- end }}
             - name: SSO_CLIENT_PORT
               value: {{  .Values.ssoClient.service.port }}
+            - name: NGINX_PROXY_URL
+              value: http://{{ include "ssoGateway.fullname" . }}-proxy:{{ .Values.nginx.service.ports.http }}
             - name: REDIS_STORE_URL
-              value: {{ include "ssoGateway.fullname" . }}-redis:{{ .Values.redis.service.port }}
+              value: http://{{ include "ssoGateway.fullname" . }}-redis:{{ .Values.redis.service.port }}
             - name: REDIRECT_URL
-              value: {{ include "ssoGateway.fullname" . }}-client:{{ .Values.nginx.service.ports.http }}/authn/callback
+              value: http://{{ include "ssoGateway.fullname" . }}-client:{{ .Values.ssoClient.service.port }}/authn/callback
             - name: VAULT_CONFIG_PATH
               value: {{  .Values.global.vault.containerPath }}
             - name: REDIS_PASSWORD

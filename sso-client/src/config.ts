@@ -10,6 +10,8 @@ import fs from 'fs';
 
 export interface SSOConfig {
   HOSTNAME: string;
+  NGINX_PROXY_URL: string;
+  SSO_CLIENT_HOST: string;
   SSO_CLIENT_PORT: number;
   SSO_AUTH_SERVER_URL: string;
   SSO_REALM: string;
@@ -52,6 +54,8 @@ function loadAndParseJSON(filePath: string) {
     // Merge the loaded config data with the appConfig
     let config: SSOConfig = {
       HOSTNAME: configData['hostname'] || 'localhost',
+      NGINX_PROXY_URL: process.env.NGINX_PROXY_URL || 'http://localhost:8080',
+      SSO_CLIENT_HOST: process.env.SSO_CLIENT_HOST || 'localhost',
       SSO_CLIENT_PORT: Number(process.env.SSO_CLIENT_PORT) || 3000,
       SSO_AUTH_SERVER_URL: configData['keycloak']?.['auth-server-url'] || 'localhost/auth',
       SSO_REALM: configData['keycloak']?.realm || 'standard',
