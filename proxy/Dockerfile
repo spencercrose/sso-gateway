@@ -31,6 +31,6 @@ USER nginx
 
 # Expose HTTP (and HTTPS if you terminate SSL at NGINX)
 EXPOSE 8080 
-# EXPOSE 8443 # If you are terminating HTTPS here
+EXPOSE 8443
 
-# CMD ["nginx", "-g", "daemon off;"] # This is the default CMD of the base image and works
+CMD ["nginx", "-g", "daemon off;"]

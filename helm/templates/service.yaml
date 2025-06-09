@@ -5,11 +5,11 @@ metadata:
   labels:
     {{- include "ssoGateway.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.ssoClient.service.type }}
+  type: {{ .Values.ssoClient.service.type | default "ClusterIP" }}
   ports:
-    - port: {{ .Values.ssoClient.service.port }}
+    - name: http
+      port: {{ .Values.ssoClient.service.port }}
       targetPort: http
       protocol: TCP
-      name: http
   selector:
     {{- include "ssoGateway.selectorLabels" . | nindent 4 }}

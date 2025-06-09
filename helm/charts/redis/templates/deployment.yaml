@@ -1,5 +1,4 @@
-# sso-gateway/templates/redis/deployment.yaml
-{{- if .Values.redis.enabled -}}
+{{- if .Values.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -8,7 +7,7 @@ metadata:
     {{- include "ssoGateway.labels" . | nindent 4 }}
     app.kubernetes.io/component: redis
 spec:
-  replicas: {{ .Values.redis.replicaCount }}
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       {{- include "ssoGateway.selectorLabels" . | nindent 6 }}
@@ -21,39 +20,39 @@ spec:
     spec:
       containers:
         - name: redis
-          image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"
-          imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: redis
-              containerPort: {{ .Values.redis.containerPort }}
+              containerPort: {{ .Values.service.port }}
               protocol: TCP
           livenessProbe:
             tcpSocket:
-              port: {{ .Values.redis.containerPort }}
+              port: {{ .Values.service.port }}
             initialDelaySeconds: 5
             periodSeconds: 10
           readinessProbe:
             tcpSocket:
-              port: {{ .Values.redis.containerPort }}
+              port: {{ .Values.service.port }}
             initialDelaySeconds: 5
             periodSeconds: 10
-          {{- if .Values.redis.password }}
+          {{- if .Values.password }}
           command: ["redis-server", "--requirepass", "$(REDIS_PASSWORD)"]
           env:
-            - name: REDIS_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "ssoGateway.fullname" . }}-global-conf
-                  key: redis-password
+              - name: REDIS_PASSWORD 
+                valueFrom:
+                  secretKeyRef:
+                    name: sso-gateway-global-conf
+                    key: redisPassword
           {{- end }}
-          {{- if .Values.redis.persistence.enabled }}
+          {{- if .Values.persistence.enabled }}
           volumeMounts:
             - name: redis-data
               mountPath: /data
           {{- end }}
           resources:
-            {{- toYaml .Values.redis.resources | nindent 12 }}
-      {{- if .Values.redis.persistence.enabled }}
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- if .Values.persistence.enabled }}
       volumes:
         - name: redis-data
           persistentVolumeClaim:

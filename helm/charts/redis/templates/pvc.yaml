@@ -1,5 +1,4 @@
-# sso-gateway/templates/redis/pvc.yaml
-{{- if and .Values.redis.enabled .Values.redis.persistence.enabled -}}
+{{- if and .Values.enabled .Values.persistence.enabled -}}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -12,8 +11,8 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: {{ .Values.redis.persistence.size }}
-  {{- if .Values.redis.persistence.storageClassName }}
-  storageClassName: {{ .Values.redis.persistence.storageClassName }}
+      storage: {{ .Values.persistence.size }}
+  {{- if .Values.persistence.storageClassName }}
+  storageClassName: {{ .Values.persistence.storageClassName }}
   {{- end }}
 {{- end }}

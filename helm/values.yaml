@@ -1,31 +1,28 @@
-# -- Global default values for SSO Gateway Helm Chart
 global:
   nameOverride: ""
   fullnameOverride: ""
+  licenseplate: "abcdef"
+  cluster: "silver"
   serviceAccount:
-    name: "<licenseplate>-vault"
+    name: "abcdet-vault"
     # Specifies whether a service account should be created
     create: false
     # Automatically mount a ServiceAccount's API credentials?
     automount: true
-    # Annotations to add to the service account
-    # See details: https://stackoverflow.developer.gov.bc.ca/questions/1060/1061
-    annotations: 
-      vault.hashicorp.com/namespace: platform-services
-      vault.hashicorp.com/role: abcdef-nonprod
-      vault.hashicorp.com/agent-pre-populate-only: 'true'
-      vault.hashicorp.com/agent-inject: 'true'
-      vault.hashicorp.com/agent-inject-secret-secrets.env: abcdef-nonprod/dev/service-name
-      vault.hashicorp.com/agent-inject-template-secrets.env: |
-        {{- with secret "abcdef-nonprod/dev/service-name" }}
-        {{- range $k, $v := .Data.data }}
-        {{ $k }}={{ $v }}{{ end -}}
-        {{- end  }}
-      vault.hashicorp.com/auth-path: auth/k8s-silver
-    # -- Server domains for the SSO Gateway
-    domains:
-      - "app1.example.com" 
-      - "app2.example.com"
+  # -- List of servers proxied by the SSO Gateway
+  servers:
+    - domain: "app1.example.com" 
+      backend: "app1-backend.example.com"
+    - domain: "app2.example.com"
+      backend: "app2-backend.example.com"
+
+  # Inject Keycloak JSON multi-value config from a Vault secret
+  # See details: https://digital.gov.bc.ca/technology/cloud/private/products-tools/vault/
+  vault:
+    # Vault role for this service
+    role: "abcdef-nonprod" 
+    # Path in Vault where the secret is located.
+    path: abcdef-nonprod/dev/service-name 
 
 # -- Node.js SSO Gateway default configuration
 ssoClient:
@@ -35,12 +32,13 @@ ssoClient:
   replicaCount: 1
 
   image:
-    repository: "ghcr.io/spencercrose/ssoGateway"
+    repository: "ghcr.io/spencercrose/sso-gateway"
     tag: "latest"
     pullPolicy: IfNotPresent
 
   # -- Image Pull Secrets for Private GHCR
   imagePullSecrets: []
+ 
   podAnnotations: {}
   podLabels: {}
 
@@ -56,14 +54,10 @@ ssoClient:
         - ALL
 
   env: {}
-    # - name: SSO_REDIS_SESSION_STORE_URL
-    #   value: "redis://localhost:6379"
-    # - name: SSO_REDIS_CONNECT_PASSWORD
-    #   value: ""
 
   service:
     type: ClusterIP
-    containerPort: 3000
+    port: 3000
 
   ingress:
     enabled: false
@@ -191,12 +185,7 @@ redis:
     #      - chart-example.local
 
   # Redis connection configuration
-  env:
-    - name: REDIS_PASSWORD 
-      valueFrom:
-        secretKeyRef:
-          name: sso-gateway-global-conf
-          key: redisPassword
+  env: {}
 
   resources:
     limits:
@@ -249,16 +238,15 @@ nginx:
   replicaCount: 1
 
   image:
-    repository: nginx
-    tag: stable-alpine
+    repository: image-registry.openshift-image-registry.svc:5000/aebbdd-dev/nginx-unprivileged
+    tag: latest
     pullPolicy: IfNotPresent
-
-  containerPort: 80 # NGINX listens on 80 inside container
 
   service:
     type: ClusterIP 
-    port: 80 # External port for NGINX
-    targetPort: 80 # Internal port of NGINX container
+    ports:
+      http: 8080
+      https: 8081
 
   ingress:
     enabled: false # Set to true to use Kubernetes Ingress resource (requires Ingress Controller)
@@ -285,3 +273,7 @@ nginx:
     maxReplicas: 100
     targetCPUUtilizationPercentage: 80
     # targetMemoryUtilizationPercentage: 80
+
+  volumeMounts: []
+
+  volumes: []

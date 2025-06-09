@@ -1,27 +1,14 @@
-# ssoGateway/
-# ├── Chart.yaml
-# ├── values.yaml
-# ├── templates/
-# │   ├── _helpers.tpl
-# │   ├── image-pull-secret.yaml # New for GHCR pull secret
-# │   ├── sso/
-# │   │   ├── deployment.yaml
-# │   │   └── service.yaml
-# │   ├── redis/
-# │   │   ├── deployment.yaml
-# │   │   ├── service.yaml
-# │   │   ├── pvc.yaml (optional)
-# │   │   └── secret.yaml (optional, for Redis password)
-# │   └── nginx-proxy/
-# │       ├── configmap.yaml
-# │       ├── deployment.yaml
-# │       ├── service.yaml
-# │       └── ingress.yaml (optional alternative to service.type: LoadBalancer)
-
 apiVersion: v2
 name: sso-gateway
 description: A Helm chart for deploying an SSO client app with NGINX reverse proxy and Redis session store.
 type: application
 version: 0.1.0
 appVersion: "2.0.1"
-icon: https://raw.githubusercontent.com/spencercrose/sso-gateway/refs/heads/main/helm/sso-gateway.svg
+icon: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Node.js_logo.svg/590px-Node.js_logo.svg.png
+dependencies:
+  - name: redis
+    version: 14.0.0
+    repository: file://./charts/redis
+  - name: nginx
+    version: 1.0.0
+    repository: file://./charts/nginx

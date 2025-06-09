@@ -1,0 +1,43 @@
+enabled: true
+replicaCount: 1
+
+image:
+  repository: image-registry.apps.silver.devops.gov.bc.ca/aebbdd-dev/nginx-unprivileged
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP 
+  ports:
+    http: 8080
+    https: 8081
+
+ingress:
+  enabled: false 
+  className: "nginx" 
+  host: "sso.example.com"
+  path: /
+  pathType: Prefix
+  annotations: {} # Add any specific Ingress annotations here (e.g., cert-manager, rewrite rules)
+  tls:
+    enabled: false
+    secretName: "" # e.g., sso-example-com-tls
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+volumeMounts: []
+
+volumes: []
