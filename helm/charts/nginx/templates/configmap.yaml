@@ -41,17 +41,17 @@ data:
             proxy_set_header Content-Length "";
             proxy_set_header Authorization $http_authorization;
             proxy_pass_header Authorization;
-            proxy_pass http://sso-gateway-client/;
+            proxy_pass http://sso-gateway-client-svc/;
           }
 
           location /sso-login {
             proxy_set_header Host $host;
-            proxy_pass http://sso-gateway-client/authn;
+            proxy_pass http://sso-gateway-client-svc/authn;
           }
 
           location /sso {
             proxy_set_header Host $host;
-            proxy_pass http://sso-gateway-client/authn/callback;
+            proxy_pass http://sso-gateway-client-svc/authn/callback;
           }
 
           location @login_required {

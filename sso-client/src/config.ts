@@ -79,16 +79,16 @@ async function loadAndParseKeycloakConfig(filePath: string): Promise<SSOConfig> 
     const configData = JSON.parse(jsonString);
     console.log(`[Config Loader] JSON parsing successful.`);
 
-    // ... (rest of your SSOConfig mapping logic remains the same) ...
+    // 5. Validate the structure of the parsed data
     const config: SSOConfig = {
-      HOSTNAME: configData['hostname'] || 'localhost',
+      HOSTNAME: configData[0]['hostname'] || 'localhost',
       NGINX_PROXY_URL: process.env.NGINX_PROXY_URL || 'http://localhost:8080',
       SSO_CLIENT_HOST: process.env.SSO_CLIENT_HOST || 'localhost',
       SSO_CLIENT_PORT: Number(process.env.SSO_CLIENT_PORT) || 3000,
-      SSO_AUTH_SERVER_URL: configData['keycloak']?.['auth-server-url'] || 'http://localhost:8080/auth',
-      SSO_REALM: configData['keycloak']?.realm || 'standard',
-      SSO_CLIENT_ID: configData['keycloak']?.['client-id'] || 'sso-client',
-      SSO_CLIENT_SECRET: configData['keycloak']?.['client-secret'] || '',
+      SSO_AUTH_SERVER_URL: configData[0]['keycloak']?.['auth-server-url'] || 'http://localhost:8080/auth',
+      SSO_REALM: configData[0]['keycloak']?.realm || 'standard',
+      SSO_CLIENT_ID: configData[0]['keycloak']?.['client-id'] || 'sso-client',
+      SSO_CLIENT_SECRET: configData[0]['keycloak']?.['client-secret'] || '',
       SSO_REDIRECT_URL: process.env.REDIRECT_URL || 'http://localhost:8080/authn/callback',
       SSO_REDIS_SESSION_STORE_URL: process.env.REDIS_STORE_URL || 'redis://localhost:6379',
       SSO_REDIS_CONNECT_PASSWORD: process.env.REDIS_CONNECT_PASSWORD || '',
