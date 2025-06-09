@@ -98,6 +98,7 @@ async function loadAndParseKeycloakConfig(filePath: string): Promise<SSOConfig> 
     };
 
     console.log(`[Config Loader] SSOConfig loaded successfully.`);
+    console.log(`[Config Loader] Configuration:`, config);
     return config;
 
   } catch (error: any) {
