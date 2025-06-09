@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "ssoGateway.fullname" . }}
+  name: {{ include "ssoGateway.fullname" . }}-client
   labels:
     {{- include "ssoGateway.labels" . | nindent 4 }}
 spec:
@@ -54,8 +54,8 @@ spec:
         {{- toYaml .Values.ssoClient.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
-          args:
-            ['sh', '-c', 'source {{ .Values.global.vault.path }}']
+          # args:
+          #   ['sh', '-c', 'source {{ .Values.global.vault.path }}']
           securityContext:
             {{- toYaml .Values.ssoClient.securityContext | nindent 12 }}
           image: {{ .Values.ssoClient.image.repository }}:{{ .Values.ssoClient.image.tag }}
@@ -90,6 +90,14 @@ spec:
             {{- if .Values.ssoClient.env }} 
             {{- toYaml .Values.ssoClient.env | trimSuffix "\n" | nindent 12 }}
             {{- end }}
+            - name: SSO_CLIENT_PORT
+              value: {{  .Values.ssoClient.service.port }}
+            - name: REDIS_STORE_URL
+              value: {{ include "ssoGateway.fullname" . }}-redis:{{ .Values.redis.service.port }}
+            - name: REDIRECT_URL
+              value: {{ include "ssoGateway.fullname" . }}-client:{{ .Values.nginx.service.ports.http }}/authn/callback
+            - name: VAULT_CONFIG_PATH
+              value: {{  .Values.global.vault.containerPath }}
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:

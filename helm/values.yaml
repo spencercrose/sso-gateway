@@ -23,6 +23,8 @@ global:
     role: "abcdef-nonprod" 
     # Path in Vault where the secret is located.
     path: abcdef-nonprod/dev/service-name 
+    # Secrets path in container
+    containerPath: "/vault/secrets/secrets"
 
 # -- Node.js SSO Gateway default configuration
 ssoClient:
@@ -202,10 +204,6 @@ redis:
     targetCPUUtilizationPercentage: 80
     # targetMemoryUtilizationPercentage: 80
 
-  persistence:
-    enabled: false # Set to true for production, requires a StorageClass
-    size: 256Mi
-    storageClassName: "" # Defaults to cluster default, specify if needed
   resources:
     requests:
       cpu: 50m
@@ -214,16 +212,14 @@ redis:
       cpu: 100m
       memory: 128Mi
 
-  # Additional volumes on the output Deployment definition.
-  volumes:
-    - name: redis-data
-      persistentVolumeClaim:
-        claimName: redis-store
+  persistence:
+    enabled: true
+    size: 100Mi
+    storageClassName: ""
 
-  # Additional volumeMounts on the output Deployment definition.
-  volumeMounts:
-    - name: redis-data
-      mountPath: /data
+  volumes: []
+
+  volumeMounts: []
 
   nodeSelector: {}
 
@@ -238,9 +234,9 @@ nginx:
   replicaCount: 1
 
   image:
-    repository: image-registry.openshift-image-registry.svc:5000/aebbdd-dev/nginx-unprivileged
-    tag: latest
-    pullPolicy: IfNotPresent
+    repository: image-registry.apps.silver.devops.gov.bc.ca/aebbdd-dev/nginx-nonroot
+    tag: "2.0"
+    pullPolicy: Always
 
   service:
     type: ClusterIP 

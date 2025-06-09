@@ -6,7 +6,9 @@
  * @author Government of British Columbia
  */
 
-export interface AppConfig {
+import fs from 'fs';
+
+export interface SSOConfig {
   HOSTNAME: string;
   SSO_CLIENT_PORT: number;
   SSO_AUTH_SERVER_URL: string;
@@ -17,57 +19,56 @@ export interface AppConfig {
   SSO_REDIS_SESSION_STORE_URL: string;
   SSO_REDIS_CONNECT_PASSWORD: string;
   SSO_SESSION_SECRET: string;
-  SSO_LOGOUT_REDIRECT_URI: string; 
+  SSO_LOGOUT_REDIRECT_URI: string;
   SM_LOGOUT_URL: string;
 }
 
-let config: AppConfig = {
-      HOSTNAME: 'localhost',
-      SSO_CLIENT_PORT: 3000,
-      SSO_AUTH_SERVER_URL: 'keycloak.example.com',
-      SSO_REALM: 'standard',
-      SSO_CLIENT_ID: 'CLIENT_ID',
-      SSO_CLIENT_SECRET: 'CLIENT_SECRET',
-      SSO_REDIRECT_URL: 'http://localhost:3000/authn/callback',
-      SSO_REDIS_SESSION_STORE_URL: 'redis://localhost:6379',
-      SSO_REDIS_CONNECT_PASSWORD: '',
-      SSO_SESSION_SECRET: 'SESSION_SECRET',
-      SSO_LOGOUT_REDIRECT_URI: 'http://localhost:3000',
+// Default path for the configuration secrets file injected by Vault
+const configFilePath = process.env.VAULT_CONFIG_PATH || "/vault/secrets/secrets";
+
+if (!fs.existsSync(configFilePath)) {
+  console.error(`Configuration file not found at path: ${configFilePath}`);
+  process.exit(1);
+}
+
+/**
+ * Load and parse the JSON configuration file.
+     * Structure:
+     *  - hostname
+     *  - keycloak:
+     *    - confidential-port
+     *    - auth-server-url
+     *    - realm
+     *    - ssl-required
+     *    - client-id
+     *    - client-secret
+     */
+function loadAndParseJSON(filePath: string) {
+  try {
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    const configData = JSON.parse(fileContent);
+    console.log("Parsed JSON:", configData);
+
+    // Merge the loaded config data with the appConfig
+    let config: SSOConfig = {
+      HOSTNAME: configData['hostname'] || 'localhost',
+      SSO_CLIENT_PORT: Number(process.env.SSO_CLIENT_PORT) || 3000,
+      SSO_AUTH_SERVER_URL: configData['keycloak']?.['auth-server-url'] || 'localhost/auth',
+      SSO_REALM: configData['keycloak']?.realm || 'standard',
+      SSO_CLIENT_ID: configData['keycloak']?.['client-id'] || 'sso-client',
+      SSO_CLIENT_SECRET: configData['keycloak']?.['client-secret'] || 'client-secret',
+      SSO_REDIRECT_URL: process.env.REDIRECT_URL || 'http://localhost:8080/authn/callback',
+      SSO_REDIS_SESSION_STORE_URL: process.env.REDIS_STORE_URL || 'redis://localhost:6379',
+      SSO_REDIS_CONNECT_PASSWORD: process.env.REDIS_CONNECT_PASSWORD || '',
+      SSO_SESSION_SECRET: process.env.SSO_SESSION_SECRET || '',
+      SSO_LOGOUT_REDIRECT_URI: 'https://gov.bc.ca',
       SM_LOGOUT_URL: 'https://logon.gov.bc.ca/clp-cgi/logoff.cgi',
     };
 
-// Get Keycloak multi-config JSON from environment variable
-const appConfigJsonString = process.env.KEYCLOAK_MULTI_CONFIG_JSON;
-
-if (appConfigJsonString) {
-  try {
-    const appConfig = JSON.parse(appConfigJsonString);
-
-    console.log("App Hostname:", appConfig.hostname);
-    console.log("Keycloak Auth Server URL:", appConfig.keycloak["auth-server-url"]);
-    console.log("Keycloak Secret:", appConfig.keycloak.credentials.secret); // Note: Sensitive! Handle securely.
-
-    // Assign values to config object, ensuring types are correct
-    config = { 
-      SSO_CLIENT_PORT: Number(process.env.SSO_CLIENT_PORT) || 3000,
-      SSO_AUTH_SERVER_URL: process.env.SSO_AUTH_SERVER_URL || 'YOUR_KEYCLOAK_URL',
-      SSO_REALM: process.env.SSO_REALM || 'YOUR_REALM', // Defaulting to a string here
-      SSO_CLIENT_ID: process.env.SSO_CLIENT_ID || 'YOUR_CLIENT_ID',
-      SSO_CLIENT_SECRET: process.env.SSO_CLIENT_SECRET || 'YOUR_CLIENT_SECRET',
-      SSO_REDIRECT_URL: process.env.SSO_REDIRECT_URL || 'http://localhost:3000/authn/callback',
-      SSO_REDIS_SESSION_STORE_URL: process.env.SSO_REDIS_SESSION_STORE_URL || 'redis://localhost:6379',
-      SSO_REDIS_CONNECT_PASSWORD: process.env.SSO_REDIS_CONNECT_PASSWORD || '', // Provide an empty string as default
-      SSO_SESSION_SECRET: process.env.SSO_SESSION_SECRET || 'supersecret', // Provide a default string
-      SSO_LOGOUT_REDIRECT_URI: process.env.SSO_LOGOUT_REDIRECT_URI || 'http://localhost:3000', // ADDED/FIXED
-      SM_LOGOUT_URL: process.env.SM_LOGOUT_URL || 'https://logon.gov.bc.ca/clp-cgi/logoff.cgi',
-      CLIENT_HOST: process.env.CLIENT_HOST || 'http://localhost:3000', // ADDED/FIXED
-    };
+    return config;
   } catch (error) {
-    console.error("Failed to parse KEYCLOAK_MULTI_CONFIG_JSON:", error);
-    process.exit(1); // Exit if critical config can't be parsed
+    console.error("Error loading or parsing JSON:", error);
   }
-} else {
-  console.warn("KEYCLOAK_MULTI_CONFIG_JSON environment variable not found.");
 }
 
-export default config;
+export default loadAndParseJSON(configFilePath);

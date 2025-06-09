@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "ssoGateway.fullname" . }}-redis-pvc
+  name: {{ include "ssoGateway.fullname" . }}-pvc
   labels:
     {{- include "ssoGateway.labels" . | nindent 4 }}
     app.kubernetes.io/component: redis
