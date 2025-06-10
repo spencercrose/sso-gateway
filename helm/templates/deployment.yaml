@@ -77,6 +77,8 @@ spec:
                 echo "ERROR: REDIS_PASSWORD variable is empty after loading from secret. Exiting."
                 exit 1
               fi
+
+              exec npm start
           securityContext:
             {{- toYaml .Values.ssoClient.securityContext | nindent 12 }}
           image: {{ .Values.ssoClient.image.repository }}:{{ .Values.ssoClient.image.tag }}
@@ -121,11 +123,6 @@ spec:
               value: http://{{ include "ssoGateway.fullname" . }}-client-svc:{{ .Values.ssoClient.service.port }}/authn/callback
             - name: VAULT_CONFIG_PATH
               value: {{  .Values.global.vault.containerPath | quote }}
-            - name: REDIS_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: sso-gateway-global-conf
-                  key: redisPassword
           envFrom:
             {{- toYaml .Values.ssoClient.envFrom | nindent 12 }}
           {{- with .Values.ssoClient.volumeMounts }}
