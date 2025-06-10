@@ -8,6 +8,7 @@ spec:
   {{- if not .Values.ssoClient.autoscaling.enabled }}
   replicas: {{ .Values.ssoClient.replicaCount }}
   {{- end }}
+  revisionHistoryLimit: 1
   selector:
     matchLabels:
       {{- include "ssoGateway.selectorLabels" . | nindent 6 }}
@@ -25,16 +26,20 @@ spec:
         vault.hashicorp.com/namespace: platform-services
         # licenseplate-nonprod or licenseplate-prod are your options
         vault.hashicorp.com/role: {{ .Values.global.vault.role }} 
-        # Configure how to retrieve and populate the secrets from Vault:
-        # - The name of the secret is any unique string after vault.hashicorp.com/agent-inject-secret-<name>
         # - The value is the path in Vault where the secret is located.
-        vault.hashicorp.com/agent-inject-secret-secrets-conf: {{  .Values.global.vault.secret }}
+        vault.hashicorp.com/agent-inject-secret-secrets: {{ .Values.global.licenseplate }}-{{ .Values.global.vault.engine }}/{{ .Values.ssoClient.vault.secret }}
         # - The template Vault Agent should use for rendering a secret:
-        vault.hashicorp.com/agent-inject-secret-secrets: {{ .Values.global.vault.path }}
         vault.hashicorp.com/agent-inject-template-secrets: |
-          {{`{{- with secret `}}"{{ .Values.global.vault.path }}"{{` }}
+          {{`{{- with secret `}}"{{ .Values.global.licenseplate }}-{{ .Values.global.vault.engine }}/{{ .Values.ssoClient.vault.secret }}"{{` }}
           {{- range $k, $v := .Data.data }}
           {{ $k }}={{ $v }}{{ end -}}
+          {{- end `}} }}
+        # - The value is the path in Vault where the secret is located.
+        vault.hashicorp.com/agent-inject-secret-redis-password: {{ .Values.global.licenseplate }}-{{ .Values.global.vault.engine }}/{{ .Values.redis.vault.secret }}
+        # - The template Vault Agent should use for rendering a secret:
+        vault.hashicorp.com/agent-inject-template-redis-password: |
+          {{`{{- with secret `}}"{{ .Values.global.licenseplate }}-{{ .Values.global.vault.engine }}/{{ .Values.redis.vault.secret }}"{{` }}
+          {{ .Data.data.password }}
           {{- end `}} }}
       {{- with .Values.ssoClient.podAnnotations }}
         {{- toYaml . | nindent 8 }}
@@ -54,8 +59,24 @@ spec:
         {{- toYaml .Values.ssoClient.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
-          # args:
-          #   ['sh', '-c', 'source {{ .Values.global.vault.path }}']
+          command: ["/bin/sh"]
+          args:
+            - -c
+            - |
+              echo "INFO: SSO Client container starting entrypoint..."
+              if [ -s /vault/secrets/redis-password ]; then
+                SECRET_CONTENT=$(cat /vault/secrets/redis-password)
+                export REDIS_PASSWORD=$(echo "${SECRET_CONTENT}" | tr -d '\n\r ')
+                echo "INFO: Password loaded from Vault secret. Length: ${#REDIS_PASSWORD}"
+              else
+                echo "ERROR: /vault/secrets/redis-password is empty or does not exist. Exiting."
+                exit 1
+              fi
+
+              if [ -z "${REDIS_PASSWORD}" ]; then
+                echo "ERROR: REDIS_PASSWORD variable is empty after loading from secret. Exiting."
+                exit 1
+              fi
           securityContext:
             {{- toYaml .Values.ssoClient.securityContext | nindent 12 }}
           image: {{ .Values.ssoClient.image.repository }}:{{ .Values.ssoClient.image.tag }}
@@ -93,9 +114,9 @@ spec:
             - name: SSO_CLIENT_PORT
               value: {{  .Values.ssoClient.service.port | quote }}
             - name: NGINX_PROXY_URL
-              value: http://{{ include "ssoGateway.fullname" . }}-nginx-svc:{{ .Values.nginx.service.ports.http }}
+              value: http://{{ include "ssoGateway.fullname" . }}-nginx-svc
             - name: REDIS_STORE_URL
-              value: http://{{ include "ssoGateway.fullname" . }}-redis-svc:{{ .Values.redis.service.port }}
+              value: redis://{{ include "ssoGateway.fullname" . }}-redis-svc:{{ .Values.redis.service.port }}
             - name: REDIRECT_URL
               value: http://{{ include "ssoGateway.fullname" . }}-client-svc:{{ .Values.ssoClient.service.port }}/authn/callback
             - name: VAULT_CONFIG_PATH
@@ -105,11 +126,6 @@ spec:
                 secretKeyRef:
                   name: sso-gateway-global-conf
                   key: redisPassword
-            - name: SSO_SESSION_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: sso-gateway-global-conf
-                  key: ssoSessionSecret
           envFrom:
             {{- toYaml .Values.ssoClient.envFrom | nindent 12 }}
           {{- with .Values.ssoClient.volumeMounts }}

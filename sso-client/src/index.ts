@@ -81,7 +81,7 @@ let keycloakClient: Client;
     // Initialize Redis client for session store
     const redisClient = redis.createClient({
       url: config.SSO_REDIS_SESSION_STORE_URL,
-      password: config.SSO_REDIS_CONNECT_PASSWORD || undefined // Password can be undefined if empty string
+      password: config.SSO_REDIS_CONNECT_PASSWORD || undefined
     });
 
     redisClient.on('error', (err: Error) => {

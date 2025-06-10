@@ -14,12 +14,6 @@ fullnameOverride: ""
 podAnnotations: {}
 podLabels: {}
 
-# This is the Redis password for connecting to the Redis instance
-password: 
-  value: "" # Provide a plaintext secret here to use a specific value
-  generate: true # Set to true to generate a random secret if 'value' is empty
-  length: 32 # Length of the randomly generated string
-
 podSecurityContext: {}
   # fsGroup: 2000
 
@@ -69,7 +63,6 @@ autoscaling:
   # targetMemoryUtilizationPercentage: 80
 
 persistence:
-  enabled: true
   size: 100Mi
   storageClassName: ""
 

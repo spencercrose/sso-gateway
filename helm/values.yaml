@@ -21,10 +21,10 @@ global:
   vault:
     # Vault role for this service
     role: "abcdef-nonprod" 
-    # Path in Vault where the secret is located.
-    path: abcdef-nonprod/dev/service-name 
     # Secrets path in container
     containerPath: "/vault/secrets/secrets"
+    # Vault engine to use
+    engine: "nonprod"
 
 # -- Node.js SSO Gateway default configuration
 ssoClient:
@@ -37,6 +37,10 @@ ssoClient:
     repository: "ghcr.io/spencercrose/sso-gateway"
     tag: "latest"
     pullPolicy: IfNotPresent
+
+  vault:
+    # Name of the Vault secret to inject into the container.
+    secret: "keycloak-config"
 
   # -- Image Pull Secrets for Private GHCR
   imagePullSecrets: []
@@ -55,7 +59,7 @@ ssoClient:
       drop:
         - ALL
 
-  env: []
+  env: {}
 
   service:
     type: ClusterIP
@@ -142,18 +146,16 @@ redis:
     pullPolicy: IfNotPresent
     tag: "8.0.2"
 
+  vault:
+    # Name of the Vault secret to inject into the container.
+    secret: "redis-password"
+
   imagePullSecrets: []
   nameOverride: ""
   fullnameOverride: ""
 
   podAnnotations: {}
   podLabels: {}
-
-  # This is the Redis password for connecting to the Redis instance
-  password: 
-    value: "" # Provide a plaintext secret here to use a specific value
-    generate: true # Set to true to generate a random secret if 'value' is empty
-    length: 32 # Length of the randomly generated string
 
   podSecurityContext: {}
     # fsGroup: 2000
@@ -213,7 +215,6 @@ redis:
       memory: 128Mi
 
   persistence:
-    enabled: true
     size: 100Mi
     storageClassName: ""
 
