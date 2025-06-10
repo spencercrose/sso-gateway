@@ -67,7 +67,7 @@ spec:
               if [ -s /vault/secrets/redis-password ]; then
                 SECRET_CONTENT=$(cat /vault/secrets/redis-password)
                 export REDIS_PASSWORD=$(echo "${SECRET_CONTENT}" | tr -d '\n\r ')
-                echo "INFO: Password loaded from Vault secret. Length: ${#REDIS_PASSWORD}"
+                echo "INFO: Redis Password loaded from Vault secret. Length: ${#REDIS_PASSWORD}"
               else
                 echo "ERROR: /vault/secrets/redis-password is empty or does not exist. Exiting."
                 exit 1

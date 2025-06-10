@@ -92,7 +92,7 @@ async function loadAndParseKeycloakConfig(filePath: string): Promise<SSOConfig> 
       SSO_REDIRECT_URL: `${configData[0]['hostname']}/sso'` || 'http://localhost:8080/authn/callback',
       SSO_REDIS_SESSION_STORE_URL: process.env.REDIS_STORE_URL || 'redis://localhost:6379',
       SSO_REDIS_CONNECT_PASSWORD: process.env.REDIS_PASSWORD || '',
-      SSO_SESSION_SECRET: configData[0]['session-secret'] || 'strong-default-secret-you-should-change',
+      SSO_SESSION_SECRET: configData[0]['keycloak']?.['session-secret'] || 'strong-default-secret-you-should-change',
       SSO_LOGOUT_REDIRECT_URI: process.env.SSO_LOGOUT_REDIRECT_URI || 'https://gov.bc.ca',
       SM_LOGOUT_URL: process.env.SM_LOGOUT_URL || 'https://logon.gov.bc.ca/clp-cgi/logoff.cgi',
     };
