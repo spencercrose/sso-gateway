@@ -47,7 +47,7 @@ jobs:
             type=ref,event=tag
 
       - name: Build and Push Client Image
-        id: build-app1
+        id: build-sso-client
         uses: docker/build-push-action@v5
         with:
           context: ./sso-client
@@ -69,19 +69,19 @@ jobs:
             type=ref,event=tag
 
       - name: Build and Push Proxy Image
-        id: build-app2
+        id: build-nginx-proxy
         uses: docker/build-push-action@v5
         with:
           context: ./proxy
           file: ./proxy/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.metaProxy.outputs.tags }}
+          labels: ${{ steps.metaProxy.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Verify Pushed Images
         run: |
-          echo "Client Image Pushed: ${{ github.repository }}/app1:latest and ${{ github.sha }}"
-          echo "Proxy Image Pushed: ${{ github.repository }}/app2:latest and ${{ github.sha }}"
+          echo "Client Image Pushed: ${{ env.REGISTRY }}/${{ env.CLIENT_IMAGE_NAME }}:latest and ${{ github.sha }}"
+          echo "Proxy Image Pushed: ${{ env.REGISTRY }}/${{ env.PROXY_IMAGE_NAME }}:latest and ${{ github.sha }}"
 
