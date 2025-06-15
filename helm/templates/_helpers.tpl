@@ -46,10 +46,3 @@ Selector labels
 app.kubernetes.io/name: {{ include "ssoGateway.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
-
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "ssoGateway.serviceAccountName" -}}
-{{- default "default" .Values.global.serviceAccount.name }}
-{{- end }}

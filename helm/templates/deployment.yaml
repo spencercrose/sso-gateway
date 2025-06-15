@@ -54,7 +54,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "ssoGateway.serviceAccountName" . }}
+      serviceAccountName: {{ .Values.global.serviceAccount.name }}
       securityContext:
         {{- toYaml .Values.ssoClient.podSecurityContext | nindent 8 }}
       containers:
@@ -90,7 +90,7 @@ spec:
           {{- if .Values.ssoClient.probes.liveness.enabled }}
           livenessProbe:
             httpGet:
-              path: {{ .Values.ssoClient.probes.liveness.path }}
+              path: /health
               port: http
             initialDelaySeconds: {{ .Values.ssoClient.probes.liveness.initialDelaySeconds }}
             periodSeconds: {{ .Values.ssoClient.probes.liveness.periodSeconds }}
@@ -100,7 +100,7 @@ spec:
           {{- if .Values.ssoClient.probes.readiness.enabled }}
           readinessProbe:
             httpGet:
-              path: {{ .Values.ssoClient.probes.readiness.path }}
+              path: /health
               port: http
             initialDelaySeconds: {{ .Values.ssoClient.probes.readiness.initialDelaySeconds }}
             periodSeconds: {{ .Values.ssoClient.probes.readiness.periodSeconds }}

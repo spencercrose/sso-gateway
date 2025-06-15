@@ -4,23 +4,19 @@ metadata:
   name: sso-gateway-nginx-config
 data:
   nginx.conf: |
+
         server {
           listen 8080;
           listen [::]:8080; # For IPv6, if desired
-          server_name _; # Catch-all server name
 
           # Basic health check endpoint (essential for probes)
-          location /healthz {
+          location /health {
               access_log off;
               add_header Content-Type text/plain;
-              return 200 "Healthy\n";
+              return 200 "OK\n";
           }
 
-          location / {
-              # This is where you'd typically proxy to your application
-              # For a basic test, you can serve a default page:
-              root /usr/share/nginx/html;
-              index index.html index.htm;
-              try_files $uri $uri/ =404;
+          location ~ /\. {
+              deny all;
           }
         }

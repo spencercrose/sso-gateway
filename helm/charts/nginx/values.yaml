@@ -2,7 +2,7 @@ enabled: true
 replicaCount: 1
 
 image:
-  repository: image-registry.apps.silver.devops.gov.bc.ca/aebbdd-dev/nginx-unprivileged
+  repository: image-registry.apps.silver.devops.gov.bc.ca/aebbdd-dev/nginx-nonroot
   tag: latest
   pullPolicy: IfNotPresent
 
@@ -37,6 +37,20 @@ autoscaling:
   maxReplicas: 100
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
+
+probes:
+  liveness:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readiness:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
 
 volumeMounts: []
 

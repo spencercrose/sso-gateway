@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: nginx-proxy-server-conf
+  name: sso-gateway-nginx-proxy-server-conf
   labels:
     {{- include "ssoGateway.labels" . | nindent 4 }}
     app.kubernetes.io/component: nginx-proxy
 data:
-  custom-sso.conf: |
+  server-blocks.conf: |
       # Generate server blocks for each configured server domain
 
       {{- range $server := .Values.global.servers }}

@@ -4,7 +4,7 @@ global:
   licenseplate: "abcdef"
   cluster: "silver"
   serviceAccount:
-    name: "abcdet-vault"
+    name: "abcdef-vault"
     # Specifies whether a service account should be created
     create: false
     # Automatically mount a ServiceAccount's API credentials?
@@ -115,20 +115,16 @@ ssoClient:
 
   affinity: {}
 
-  # Liveness and Readiness Probes (adjust based on your app's health checks)
+  # Liveness and Readiness Probes
   probes:
     liveness:
       enabled: true
-      path: /health
-      port: 3000
       initialDelaySeconds: 30
       periodSeconds: 10
       timeoutSeconds: 5
       failureThreshold: 3
     readiness:
       enabled: true
-      path: /health
-      port: 3000
       initialDelaySeconds: 10
       periodSeconds: 10
       timeoutSeconds: 5
@@ -270,6 +266,21 @@ nginx:
     maxReplicas: 100
     targetCPUUtilizationPercentage: 80
     # targetMemoryUtilizationPercentage: 80
+
+  # Liveness and Readiness Probes
+  probes:
+    liveness:
+      enabled: true
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readiness:
+      enabled: true
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
 
   volumeMounts: []
 

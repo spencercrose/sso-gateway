@@ -13,14 +13,22 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - name: http
+    - name: http-app
       protocol: TCP
       port: 80
-      targetPort: http
-    - name: https
+      targetPort: app-traffic
+    - name: https-app
       protocol: TCP
       port: 443
-      targetPort: https
+      targetPort: app-traffic
+    - name: health
+      protocol: TCP
+      port: 8080
+      targetPort: health-check
+    - name: app-direct-8081
+      protocol: TCP
+      port: 8081
+      targetPort: app-traffic
   selector:
     app.kubernetes.io/instance: sso-gateway
     app.kubernetes.io/name: nginx

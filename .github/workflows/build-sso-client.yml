@@ -12,7 +12,7 @@ env:
   REGISTRY: ghcr.io
   # Replace 'YOUR_GITHUB_USERNAME' with your GitHub username or organization name
   # Replace 'YOUR_REPOSITORY_NAME' with the actual name of your GitHub repository
-  IMAGE_NAME: ${{ github.repository }} # This automatically resolves to 'owner/repo-name'
+  IMAGE_NAME: ${{ github.repository }}-client
 
 jobs:
   build-and-push:
