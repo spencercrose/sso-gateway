@@ -89,7 +89,7 @@ async function loadAndParseKeycloakConfig(filePath: string): Promise<SSOConfig> 
       SSO_REALM: configData[0]['keycloak']?.realm || 'standard',
       SSO_CLIENT_ID: configData[0]['keycloak']?.['client-id'] || 'sso-client',
       SSO_CLIENT_SECRET: configData[0]['keycloak']?.['client-secret'] || '',
-      SSO_REDIRECT_URL: `${configData[0]['hostname']}/sso'` || 'http://localhost:8080/authn/callback',
+      SSO_REDIRECT_URL: `${configData[0]['hostname']}/sso` || 'http://localhost:8080/authn/callback',
       SSO_REDIS_SESSION_STORE_URL: process.env.REDIS_STORE_URL || 'redis://localhost:6379',
       SSO_REDIS_CONNECT_PASSWORD: process.env.REDIS_PASSWORD || '',
       SSO_SESSION_SECRET: configData[0]['keycloak']?.['session-secret'] || 'strong-default-secret-you-should-change',
@@ -98,7 +98,7 @@ async function loadAndParseKeycloakConfig(filePath: string): Promise<SSOConfig> 
     };
 
     console.log(`[Config Loader] SSOConfig loaded successfully.`);
-    console.log(`[Config Loader] Configuration:`, config);
+    // console.log(`[Config Loader] Configuration:`, config);
     return config;
 
   } catch (error: any) {

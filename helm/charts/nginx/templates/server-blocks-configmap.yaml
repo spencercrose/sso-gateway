@@ -15,6 +15,7 @@ data:
           listen [::]:{{ $.Values.service.ports.https }};
           server_name {{ $server.domain }};
           error_page 401 403 = @login_required;
+          port_in_redirect off;
 
           # headers for reverse proxy and SSO
           proxy_set_header X-Real-IP $remote_addr;
@@ -33,6 +34,8 @@ data:
             auth_request_set $auth_status $upstream_status;
             proxy_set_header Host {{ $server.domain }};
             proxy_pass http://{{ $server.hostname }}/;
+            proxy_redirect http://{{ $server.hostname }}/ /;
+            proxy_redirect default;
           }
 
           location /auth/ {
@@ -42,20 +45,26 @@ data:
             proxy_set_header Authorization $http_authorization;
             proxy_pass_header Authorization;
             proxy_pass http://sso-gateway-client-svc/;
+            proxy_redirect http://sso-gateway-client-svc/ /;
+            proxy_redirect default;
           }
 
           location /sso-login {
             proxy_set_header Host $host;
             proxy_pass http://sso-gateway-client-svc/authn;
+            proxy_redirect http://sso-gateway-client-svc/ /;
+            proxy_redirect default;
           }
 
           location /sso {
             proxy_set_header Host $host;
             proxy_pass http://sso-gateway-client-svc/authn/callback;
+            proxy_redirect http://sso-gateway-client-svc/ /;
+            proxy_redirect default;
           }
 
           location @login_required {
-            return 302 {{ $server.domain }}/sso-login?relay=$request_uri;
+            return 302 /sso-login?relay=$request_uri;
           }
         }
         {{- end }}

@@ -8,8 +8,8 @@ spec:
   type: {{ .Values.ssoClient.service.type | default "ClusterIP" }}
   ports:
     - name: http
-      port: {{ .Values.ssoClient.service.port }}
-      targetPort: http
+      port: 80
+      targetPort: {{ .Values.ssoClient.service.port }}
       protocol: TCP
   selector:
     {{- include "ssoGateway.selectorLabels" . | nindent 4 }}

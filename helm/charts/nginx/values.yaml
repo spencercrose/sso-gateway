@@ -2,7 +2,7 @@ enabled: true
 replicaCount: 1
 
 image:
-  repository: image-registry.apps.silver.devops.gov.bc.ca/aebbdd-dev/nginx-nonroot
+  repository: "ghcr.io/spencercrose/sso-gateway-proxy"
   tag: latest
   pullPolicy: IfNotPresent
 
